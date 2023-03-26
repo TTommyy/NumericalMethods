@@ -23,41 +23,37 @@ inline void print(float x1, float x2, float x3, std::ostream& o)
     o << x1 << " " << x2 << " " << x3 << "\n";
 }
 
-inline float K2_4(float K)
-{
-    return (K-2)*(K+2);
-}
-
 inline void extract(const float product, const float sum, std::ostream& o)
 {
+    if (product == 0.0)
+    {
+        invalid(o);
+        return;
+    }
     //o << "Input: " << product << " " << sum << "\n";
-    float q;
-    const float x2 = cbrt(product);
+    const float x2 = cbrtf(product);
     //o << "x2 : " << x2 << "\n";
-    const float K = (sum - x2) / x2;
+    const float K = (sum / x2) - 1.0;
     //o << "K : "  << K << "\n";
-    if (fabs(K) < 2.0f)
+    if (fabs(K) < 2.0)
     {
         invalid(o);
         return;
     }
 
 
-    const float sqrtK = sqrt(K2_4(K));
+    const float sqrtK = sqrtf(fabs(K-2)) * sqrtf(fabs(K+2));
 
-    q = (K - sqrtK)/2;
+    float q = (K/ 2.0)  - (sqrtK / 2.0);
     if (fabs(q) < 1.0f)
     {
-        q = (K + sqrtK)/2;
+        q = (K + sqrtK) / 2.0;
     }
     float x1 = x2 / q;
     float x3 = x2 * q;
-    if (abs(x1 + x2 + x3 - sum) <= 0.0001f)
-    {
-        print(x1, x2, x3, o);
-        return;
-    }
-    invalid(o);
+
+    print(x1, x2, x3, o);
+
 }
 
 int main()
