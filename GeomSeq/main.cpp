@@ -30,11 +30,10 @@ inline void extract(const float product, const float sum, std::ostream& o)
         invalid(o);
         return;
     }
-    //o << "Input: " << product << " " << sum << "\n";
+
     const float x2 = cbrtf(product);
-    //o << "x2 : " << x2 << "\n";
     const float K = (sum / x2) - 1.0;
-    //o << "K : "  << K << "\n";
+
     if (fabs(K) < 2.0)
     {
         invalid(o);
@@ -49,8 +48,8 @@ inline void extract(const float product, const float sum, std::ostream& o)
     {
         q = (K + sqrtK) / 2.0;
     }
-    float x1 = x2 / q;
-    float x3 = x2 * q;
+    const float x1 = x2 / q;
+    const float x3 = x2 * q;
 
     print(x1, x2, x3, o);
 
