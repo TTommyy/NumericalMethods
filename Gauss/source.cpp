@@ -1,8 +1,7 @@
+// Tomasz Koczar
 #include "vectalg.h"
 #include <cmath>
 #include <algorithm>
-
-
 
 void swapRows(Matrix& A, int first, int second)
 {
@@ -12,7 +11,6 @@ void swapRows(Matrix& A, int first, int second)
     {
         temp[i] = A(first, i);
     }
-
     for (int i = 0; i < size; ++i)
     {
         A(first, i) = A(second, i);
@@ -23,28 +21,32 @@ void swapRows(Matrix& A, int first, int second)
     }
 }
 
-Vector solveEquations(const Matrix & A, const Vector & b, double eps)
+Vector solveEquations(
+    const Matrix & A,
+    const Vector & b,
+    double eps
+)
 {
+    // Robimy kopie
     int n = A.size();
     Matrix a(A);
     Vector x(b);
 
-    // Compute scale factors
+    // Liczymy skale kazdego wiersza
     Vector scale(n);
     for (int i = 0; i < n; ++i)
     {
-        double max_row = 0.0;
-        for (int j = 0; j < n; ++j)
+        double max_row = std::abs(a(i, 0));
+        for (int j = 1; j < n; ++j)
         {
             max_row = std::max(max_row, std::abs(a(i, j)));
         }
         scale[i] = max_row;
     }
 
-    // Forward elimination
     for (int k = 0; k < n - 1; ++k)
     {
-        // Scaled partial pivoting
+        // wybieramy wiesz glowny
         int max_index = k;
         double max_value = std::abs(a(k, k) / scale[k]);
         for (int i = k + 1; i < n; ++i)
@@ -57,13 +59,13 @@ Vector solveEquations(const Matrix & A, const Vector & b, double eps)
             }
         }
         if (max_index != k)
-        {
+        { // Zamienamy kolejnosc
             swapRows(a, k, max_index);
             std::swap(x[k], x[max_index]);
             std::swap(scale[k], scale[max_index]);
         }
 
-        // Elimination
+        // Elminacja Gaussa
         for (int i = k + 1; i < n; ++i)
         {
             double factor = a(i, k) / a(k, k);
@@ -75,7 +77,7 @@ Vector solveEquations(const Matrix & A, const Vector & b, double eps)
         }
     }
 
-    // Backward substitution
+    // Podstawenie do tylu
     for (int i = n - 1; i >= 0; --i)
     {
         for (int j = i + 1; j < n; ++j)
@@ -85,33 +87,32 @@ Vector solveEquations(const Matrix & A, const Vector & b, double eps)
         x[i] /= a(i, i);
     }
 
-    // Iterative refinement
+    // Iteracyjne poprawanie x++ = x + e
     Vector r(n);
+    double error, factor;
     while (true) {
-        // Compute residual
-        for (int i = 0; i < n; ++i)
-        {
-            r[i] = b[i];
-            for (int j = 0; j < n; ++j)
-                r[i] -= A(i, j) * x[j];
-        }
+        r = residual_vector(A, b, x);
 
-        // Check convergence
-        double error = 0.0;
+        // sprawdzamy blad
+        error = 0.0;
         for (int i = 0; i < n; ++i)
         {
             error = std::max(error, std::abs(r[i]));
         }
         if (error <= eps)
+        {
             break;
+        }
 
-        // Solve for error
+        // Ae = r
+        // Elminacja Gausa
+        // wynik zapsujemy w r
         a = A;
         for (int k = 0; k < n - 1; ++k)
         {
             for (int i = k + 1; i < n; ++i)
             {
-                double factor = a(i, k) / a(k, k);
+                factor = a(i, k) / a(k, k);
                 for (int j = k + 1; j < n; ++j)
                 {
                     a(i, j) -= factor * a(k, j);
@@ -119,6 +120,8 @@ Vector solveEquations(const Matrix & A, const Vector & b, double eps)
                 r[i] -= factor * r[k];
             }
         }
+
+        // Podstawianie do tylu
         for (int i = n - 1; i >= 0; --i)
         {
             for (int j = i + 1; j < n; ++j)
@@ -129,7 +132,7 @@ Vector solveEquations(const Matrix & A, const Vector & b, double eps)
             r[i] /= a(i, i);
         }
 
-        // Update solution
+        // Poprawaimy rozwiaznie
         for (int i = 0; i < n; ++i)
         {
             x[i] += r[i];
